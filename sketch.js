@@ -363,7 +363,7 @@ function draw() {
     }
     for (let i = 0; i < bonus.length; i++) {
       bonus[i].move();
-      bulletImg, bonus[i].show();
+      bonus[i].show();
       if (intersectWith(bonus[i], spaceShip)) {
         bonus[i].effect(spaceShip);
         bonus[i].y = -10;
@@ -463,7 +463,7 @@ function draw() {
         exitButton.y - 5,
         exitButton.width + 10,
         exitButton.height + 10,
-        exitButton.cornerRadius + 5
+        playAgainButton.cornerRadius + 5
       );
     }
     fill(exitButton.isHovered ? exitButton.hoverFill : exitButton.normalFill);
@@ -566,7 +566,7 @@ function draw() {
 }
 
 function drawLeaderboard(x, y, width, height) {
-  fill(0, 0, 100, 128);
+  fill(0, 0, 100, 200); // Increased opacity for contrast
   stroke(255);
   strokeWeight(2 / scaleFactor);
   rect(x, y, width, height, 10 / scaleFactor);
@@ -585,21 +585,24 @@ function drawLeaderboard(x, y, width, height) {
   );
   fill(255);
   text("High Scores", x + width / 2, y + 20 / scaleFactor);
-  textSize(12 / scaleFactor);
+  textSize(10 / scaleFactor); // Smaller text to fit position
   textStyle(NORMAL);
   let yOffset = y + 40 / scaleFactor;
   for (let i = 0; i < Math.min(5, highScores.length); i++) {
+    let position = i + 1; // Dynamic position based on rank
     let name =
       highScores[i] && highScores[i].name
-        ? highScores[i].name.substring(0, 10)
+        ? highScores[i].name.substring(0, 6) // Shorten to fit
         : "Unknown";
     let score =
       highScores[i] && highScores[i].score != null ? highScores[i].score : 0;
     textAlign(LEFT);
-    text(name, x + 10, yOffset);
+    text(position, x + 10, yOffset);
+    textAlign(CENTER);
+    text(name, x + width / 2, yOffset);
     textAlign(RIGHT);
     text(score, x + width - 10, yOffset);
-    yOffset += 20 / scaleFactor;
+    yOffset += 16 / scaleFactor; // Tighter spacing
   }
 }
 
@@ -888,7 +891,7 @@ class Enemy {
   }
 
   show() {
-    image(this.image, this.x - 15, this.y - 15); // Fixed: Use this.x, this.y
+    image(this.image, this.x - 15, this.y - 15);
   }
 }
 
