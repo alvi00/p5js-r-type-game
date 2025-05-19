@@ -30,6 +30,11 @@ let highScores = [];
 let scaleFactor = 1;
 let introVideo;
 let videoLoadFailed = false;
+let loadingStartFrame = 0;
+let transitionAlpha = 0; // For fade effects
+let clickCooldown = 0; // Prevent rapid clicks (ms)
+let playerName = ""; // For high score input
+let stateLock = false; // Prevent rapid state changes
 
 // Start screen button
 let startButton = {
@@ -103,14 +108,22 @@ function preload() {
   );
   // Initialize video
   introVideo = document.getElementById("intro-video");
-  introVideo.addEventListener("ended", () => {
-    state = -1; // Transition to loading screen
-  });
-  introVideo.addEventListener("error", () => {
+  introVideo.addEventListener("ended", videoEnded);
+  introVideo.addEventListener("error", videoError);
+}
+
+function videoEnded() {
+  if (state === -2) {
+    changeState(-1);
+  }
+}
+
+function videoError() {
+  if (state === -2) {
     console.error("Video failed to load or play:", introVideo.error);
     videoLoadFailed = true;
-    state = -1; // Skip to loading screen
-  });
+    changeState(-1);
+  }
 }
 
 function setup() {
@@ -127,26 +140,40 @@ function setup() {
   createCanvas(canvasWidth, canvasHeight);
   scaleFactor = canvasWidth / BASE_WIDTH;
   frameRate(30);
-  spaceShip = new SpaceShip(MAX_LIFE);
-  for (let i = 0; i < MAX_ENEMY; i++) {
-    enemies[i] = new Enemy();
-  }
-  for (let i = 0; i < 150; i++) {
-    stars[i] = new Star(
-      random(0, BASE_WIDTH),
-      random(-BASE_HEIGHT, BASE_HEIGHT)
-    );
-  }
+  resetGame();
   // Start video playback
   if (introVideo) {
     introVideo.play().catch((e) => {
-      console.error("Video playback failed:", e);
-      videoLoadFailed = true;
-      state = -1;
+      if (state === -2) {
+        console.error("Video playback failed:", e);
+        videoLoadFailed = true;
+        changeState(-1);
+      }
     });
   } else {
     videoLoadFailed = true;
-    state = -1;
+    changeState(-1);
+  }
+}
+
+function resetGame() {
+  spaceShip = new SpaceShip(MAX_LIFE);
+  enemies = [];
+  bullets = [];
+  enemyBullets = [];
+  bonus = [];
+  explosions = [];
+  spaceShip.score = 0;
+  for (let i = 0; i < MAX_ENEMY; i++) {
+    enemies[i] = new Enemy();
+  }
+  if (!stars.length) {
+    for (let i = 0; i < 150; i++) {
+      stars[i] = new Star(
+        random(0, BASE_WIDTH),
+        random(-BASE_HEIGHT, BASE_HEIGHT)
+      );
+    }
   }
 }
 
@@ -165,33 +192,52 @@ function windowResized() {
   scaleFactor = canvasWidth / BASE_WIDTH;
 }
 
+function changeState(newState) {
+  if (stateLock) return;
+  stateLock = true;
+  transitionAlpha = 255;
+  console.log(`State change: ${state} -> ${newState}`);
+  state = newState;
+  if (newState !== -2 && introVideo) {
+    introVideo.pause();
+    introVideo.style.display = "none";
+  }
+  if (newState === -1) {
+    loadingStartFrame = frameCount;
+  }
+  if (newState === 100) {
+    playerName = "";
+  }
+  setTimeout(() => {
+    stateLock = false;
+  }, 500);
+}
+
 function draw() {
   push();
   scale(scaleFactor);
   if (state == -2) {
     background(0);
     if (videoLoadFailed || !introVideo) {
-      state = -1; // Skip to loading screen
+      changeState(-1);
     } else {
-      introVideo.style.display = "block"; // Show video
+      introVideo.style.display = "block";
     }
   } else if (state == -1) {
-    if (introVideo) introVideo.style.display = "none"; // Hide video
     background(0);
     fill(255);
     textAlign(CENTER);
     textSize(24 / scaleFactor);
     text("Loading...", BASE_WIDTH / 2, BASE_HEIGHT / 2 - 20 / scaleFactor);
-    let progress = frameCount / 60;
+    let progress = (frameCount - loadingStartFrame) / 60;
     if (progress >= 1) {
-      state = 0;
+      changeState(0);
     }
     fill(100);
     rect(50, BASE_HEIGHT / 2, BASE_WIDTH - 100, 10 / scaleFactor);
     fill(255);
     rect(50, BASE_HEIGHT / 2, (BASE_WIDTH - 100) * progress, 10 / scaleFactor);
   } else if (state == 0) {
-    if (introVideo) introVideo.style.display = "none";
     background(5, 0, 12);
     mouvementOfStars();
     fill(255);
@@ -204,11 +250,6 @@ function draw() {
     textStyle(NORMAL);
     text("Arrows to move", BASE_WIDTH / 2, 350 / scaleFactor);
     text("Space bar to fire", BASE_WIDTH / 2, 400 / scaleFactor);
-    text(
-      "By LittleBoxes - 2019",
-      BASE_WIDTH / 2,
-      BASE_HEIGHT - 30 / scaleFactor
-    );
     drawLeaderboard(
       BASE_WIDTH / 2 - 100,
       150 / scaleFactor,
@@ -243,13 +284,12 @@ function draw() {
       startButton.y + startButton.height / 2
     );
   } else if (state == 1) {
-    if (introVideo) introVideo.style.display = "none";
     background(5, 0, 12);
     mouvementOfStars();
     spaceShip.show();
     spaceShip.move();
     if (spaceShip.life <= 0) {
-      state = 99;
+      changeState(99);
     }
     for (enemy of enemies) {
       enemy.move();
@@ -300,7 +340,6 @@ function draw() {
     bulletMove();
     bulletEnemyMove();
   } else if (state == 99) {
-    if (introVideo) introVideo.style.display = "none";
     background(0);
     fill(255);
     textFont(myFont);
@@ -371,6 +410,44 @@ function draw() {
       200,
       120 / scaleFactor
     );
+  } else if (state == 100) {
+    // High score input screen
+    background(0);
+    fill(255);
+    textFont(myFont);
+    textSize(24 / scaleFactor);
+    textAlign(CENTER);
+    text("New High Score!", BASE_WIDTH / 2, 150 / scaleFactor);
+    textSize(16 / scaleFactor);
+    text("Enter your name:", BASE_WIDTH / 2, 200 / scaleFactor);
+    // Draw input box
+    fill(0, 0, 100, 128);
+    stroke(255);
+    strokeWeight(2 / scaleFactor);
+    rect(
+      BASE_WIDTH / 2 - 100,
+      230 / scaleFactor,
+      200,
+      40 / scaleFactor,
+      10 / scaleFactor
+    );
+    noStroke();
+    fill(255);
+    textAlign(LEFT);
+    text(
+      playerName + (frameCount % 60 < 30 ? "|" : ""),
+      BASE_WIDTH / 2 - 90,
+      250 / scaleFactor
+    );
+    textAlign(CENTER);
+    textSize(12 / scaleFactor);
+    text("Press Enter to submit", BASE_WIDTH / 2, 300 / scaleFactor);
+  }
+  // Fade effect
+  if (transitionAlpha > 0) {
+    fill(0, 0, 0, transitionAlpha);
+    rect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+    transitionAlpha -= 15;
   }
   pop();
 }
@@ -392,7 +469,9 @@ function drawLeaderboard(x, y, width, height) {
   let yOffset = y + 40 / scaleFactor;
   for (let i = 0; i < Math.min(5, highScores.length); i++) {
     let name =
-      highScores[i] && highScores[i].name ? highScores[i].name : "Unknown";
+      highScores[i] && highScores[i].name
+        ? highScores[i].name.substring(0, 10)
+        : "Unknown";
     let score =
       highScores[i] && highScores[i].score != null ? highScores[i].score : 0;
     textAlign(LEFT);
@@ -404,8 +483,11 @@ function drawLeaderboard(x, y, width, height) {
 }
 
 function mousePressed() {
+  if (clickCooldown > millis() || stateLock) return;
+  clickCooldown = millis() + 500;
+  if (bonusSound.isLoaded()) bonusSound.play();
   if (state == 0 && startButton.isHovered) {
-    state = 1;
+    changeState(1);
   } else if (state == 99) {
     if (playAgainButton.isHovered) {
       if (
@@ -413,28 +495,14 @@ function mousePressed() {
         (highScores.length < 5 ||
           spaceShip.score > highScores[highScores.length - 1].score)
       ) {
-        let playerName = prompt(
-          "Enter your name for the high score:",
-          "Player"
-        );
-        if (playerName) {
-          highScores.push({ name: playerName, score: spaceShip.score });
-          highScores.sort((a, b) => b.score - a.score);
-          highScores = highScores.slice(0, 5);
-          console.log(
-            "Update assets/highscores.json with:",
-            JSON.stringify(highScores, null, 2)
-          );
-        }
+        changeState(100); // Go to high score input
+      } else {
+        resetGame();
+        changeState(1);
       }
-      state = 1;
-      enemies = [];
-      bullets = [];
-      enemyBullets = [];
-      spaceShip.score = 0;
-      setup();
     } else if (exitButton.isHovered) {
-      state = 0;
+      resetGame();
+      changeState(0);
     }
   }
 }
@@ -442,7 +510,10 @@ function mousePressed() {
 function keyPressed() {
   if (state == 0) {
     if (keyCode === RETURN) {
-      state = 1;
+      if (clickCooldown > millis()) return;
+      clickCooldown = millis() + 500;
+      if (bonusSound.isLoaded()) bonusSound.play();
+      changeState(1);
     }
   } else if (state == 1) {
     if (keyCode === LEFT_ARROW) {
@@ -459,29 +530,49 @@ function keyPressed() {
       bullets.push(new Bullet(spaceShip.x, spaceShip.y));
       if (shootSound.isLoaded()) shootSound.play();
     }
+  } else if (state == 100) {
+    if (keyCode === ENTER) {
+      let name = playerName.trim();
+      if (name.length > 0) {
+        highScores.push({
+          name: name.substring(0, 10),
+          score: spaceShip.score,
+        });
+        highScores.sort((a, b) => b.score - a.score);
+        highScores = highScores.slice(0, 5);
+        console.log(
+          "Update assets/highscores.json with:",
+          JSON.stringify(highScores, null, 2)
+        );
+        resetGame();
+        changeState(1);
+      }
+    } else if (keyCode === BACKSPACE) {
+      playerName = playerName.slice(0, -1);
+    } else if (
+      key.length === 1 &&
+      playerName.length < 10 &&
+      key.match(/[a-zA-Z0-9]/)
+    ) {
+      playerName += key.toUpperCase();
+    }
   }
 }
 
 function keyReleased() {
-  if (keyCode === LEFT_ARROW) {
-    spaceShip.direction = 0;
-  } else if (keyCode === RIGHT_ARROW) {
-    spaceShip.direction = 0;
-  }
-  if (keyCode === UP_ARROW) {
-    spaceShip.upDown = 0;
-  } else if (keyCode === DOWN_ARROW) {
-    spaceShip.upDown = 0;
+  if (state == 1) {
+    if (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) {
+      spaceShip.direction = 0;
+    }
+    if (keyCode === UP_ARROW || keyCode === DOWN_ARROW) {
+      spaceShip.upDown = 0;
+    }
   }
 }
 
 function intersectWith(object1, object2) {
   let distance = dist(object1.x, object1.y, object2.x, object2.y);
-  if (distance < object1.radius + object2.radius) {
-    return true;
-  } else {
-    return false;
-  }
+  return distance < object1.radius + object2.radius;
 }
 
 function mouvementOfStars() {
@@ -512,15 +603,11 @@ function bulletMove() {
       }
     }
   }
-  for (let i = 0; i < bullets.length; i++) {
-    if (bullets[i].y < 0) {
-      bullets.splice(i, 1);
-    }
-  }
+  bullets = bullets.filter((b) => b.y >= 0);
 }
 
 function bulletEnemyMove() {
-  for (bullet of enemyBullets) {
+  for (let bullet of enemyBullets) {
     bullet.move();
     bullet.show();
     if (intersectWith(bullet, spaceShip)) {
@@ -529,11 +616,7 @@ function bulletEnemyMove() {
       background(255, 0, 0);
     }
   }
-  for (let i = 0; i < enemyBullets.length; i++) {
-    if (enemyBullets[i].y > BASE_HEIGHT) {
-      enemyBullets.splice(i, 1);
-    }
-  }
+  enemyBullets = enemyBullets.filter((b) => b.y <= BASE_HEIGHT);
 }
 
 class SpaceShip {
@@ -553,20 +636,16 @@ class SpaceShip {
   }
 
   move() {
-    if (this.x >= 10 && this.x <= BASE_WIDTH - 10) {
-      this.x += this.speed * this.direction;
-    } else if (this.x < 10) {
-      this.x = 10;
-    } else if (this.x > BASE_WIDTH - 10) {
-      this.x = BASE_WIDTH - 10;
-    }
-    if (this.y >= BASE_HEIGHT - 300 && this.y <= BASE_HEIGHT - 30) {
-      this.y += this.speed * this.upDown;
-    } else if (this.y > BASE_HEIGHT - 30) {
-      this.y = BASE_HEIGHT - 30;
-    } else if (this.y < BASE_HEIGHT - 300) {
-      this.y = BASE_HEIGHT - 300;
-    }
+    this.x = constrain(
+      this.x + this.speed * this.direction,
+      10,
+      BASE_WIDTH - 10
+    );
+    this.y = constrain(
+      this.y + this.speed * this.upDown,
+      BASE_HEIGHT - 300,
+      BASE_HEIGHT - 30
+    );
   }
 }
 
@@ -635,8 +714,7 @@ class Enemy {
     this.x = random(10, BASE_WIDTH - 10);
     this.y = random(-40, -400);
     let enemyLottery = random(1, 10);
-    this.image = {};
-    if (enemyLottery >= 1 && enemyLottery < 4) {
+    if (enemyLottery < 4) {
       this.type = 1;
       this.speed = random(4, 8);
       this.image = enemyImg1;
@@ -645,14 +723,14 @@ class Enemy {
       this.radius = 20;
       this.dirPostHit =
         Math.pow(-1, Math.round(random(1, 2))) * random(0.2, 0.5);
-    } else if (enemyLottery >= 4 && enemyLottery < 9) {
+    } else if (enemyLottery < 9) {
       this.type = 2;
       this.speed = random(8, 12);
       this.image = enemyImg2;
       this.life = 1;
       this.point = 1;
       this.radius = 18;
-    } else if (enemyLottery >= 9 && enemyLottery <= 10) {
+    } else {
       this.type = 3;
       this.speed = random(6, 10);
       this.image = enemyImg3;
@@ -676,10 +754,8 @@ class Enemy {
   }
 
   fire() {
-    if (this.type == 3) {
-      if (random(0, 25) < 1 && this.y > 0) {
-        return true;
-      }
+    if (this.type == 3 && random(0, 25) < 1 && this.y > 0) {
+      return true;
     }
     return false;
   }
