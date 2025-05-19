@@ -96,16 +96,9 @@ function preload() {
   shootSound = loadSound("assets/shoot.wav");
   explosionSound = loadSound("assets/explosion.wav");
   bonusSound = loadSound("assets/bonus.wav");
-  loadJSON(
-    "assets/highscores.json",
-    (data) => {
-      highScores = Array.isArray(data) ? data : [];
-      highScores.sort((a, b) => b.score - a.score);
-    },
-    () => {
-      highScores = [];
-    }
-  );
+  // Load high scores from localStorage
+  highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+  highScores.sort((a, b) => b.score - a.score);
   // Initialize video
   introVideo = document.getElementById("intro-video");
   introVideo.addEventListener("ended", videoEnded);
@@ -138,7 +131,7 @@ function setup() {
     canvasHeight = canvasWidth / gameRatio;
   }
   createCanvas(canvasWidth, canvasHeight);
-  scaleFactor = canvasWidth / BASE_WIDTH;
+  scaleFactor = constrain(canvasWidth / BASE_WIDTH, 0.5, 2); // Clamp scaling
   frameRate(30);
   resetGame();
   // Start video playback
@@ -189,7 +182,7 @@ function windowResized() {
     canvasHeight = canvasWidth / gameRatio;
   }
   resizeCanvas(canvasWidth, canvasHeight);
-  scaleFactor = canvasWidth / BASE_WIDTH;
+  scaleFactor = constrain(canvasWidth / BASE_WIDTH, 0.5, 2);
 }
 
 function changeState(newState) {
@@ -222,6 +215,15 @@ function draw() {
       changeState(-1);
     } else {
       introVideo.style.display = "block";
+      fill(0, 0, 100);
+      stroke(255);
+      strokeWeight(2 / scaleFactor);
+      rect(300, 550 / scaleFactor, 80, 30 / scaleFactor, 5);
+      noStroke();
+      fill(255);
+      textSize(12 / scaleFactor);
+      textAlign(CENTER, CENTER);
+      text("Skip", 340, 565 / scaleFactor);
     }
   } else if (state == -1) {
     background(0);
@@ -245,6 +247,14 @@ function draw() {
     textSize(28 / scaleFactor);
     textStyle(BOLD);
     textAlign(CENTER);
+    // Title with shadow
+    fill(0, 0, 0, 100);
+    text(
+      "SpaceShooter",
+      BASE_WIDTH / 2 + 2 / scaleFactor,
+      100 / scaleFactor + 2 / scaleFactor
+    );
+    fill(255);
     text("SpaceShooter", BASE_WIDTH / 2, 100 / scaleFactor);
     drawLeaderboard(
       BASE_WIDTH / 2 - 100,
@@ -286,22 +296,43 @@ function draw() {
       startButton.x + startButton.width / 2,
       startButton.y + startButton.height / 2
     );
-    // Instructions below button
+    // Instructions below button with shadow
     textSize(12 / scaleFactor);
+    fill(0, 0, 0, 100);
+    text(
+      "Arrows to move",
+      BASE_WIDTH / 2 + 1 / scaleFactor,
+      (startButton.y + startButton.height + 20) / scaleFactor + 1 / scaleFactor
+    );
+    fill(255);
     text(
       "Arrows to move",
       BASE_WIDTH / 2,
-      (startButton.y + startButton.height + 10) / scaleFactor
+      (startButton.y + startButton.height + 20) / scaleFactor
     );
+    fill(0, 0, 0, 100);
+    text(
+      "Space bar to fire",
+      BASE_WIDTH / 2 + 1 / scaleFactor,
+      (startButton.y + startButton.height + 40) / scaleFactor + 1 / scaleFactor
+    );
+    fill(255);
     text(
       "Space bar to fire",
       BASE_WIDTH / 2,
-      (startButton.y + startButton.height + 30) / scaleFactor
+      (startButton.y + startButton.height + 40) / scaleFactor
     );
+    fill(0, 0, 0, 100);
+    text(
+      "Play . Shoot . Enjoy",
+      BASE_WIDTH / 2 + 1 / scaleFactor,
+      (BASE_HEIGHT - 30) / scaleFactor + 1 / scaleFactor
+    );
+    fill(255);
     text(
       "Play . Shoot . Enjoy",
       BASE_WIDTH / 2,
-      (BASE_HEIGHT - 20) / scaleFactor
+      (BASE_HEIGHT - 30) / scaleFactor
     );
     startButton.isHovered =
       mouseX / scaleFactor >= startButton.x &&
@@ -366,6 +397,7 @@ function draw() {
     bulletEnemyMove();
   } else if (state == 99) {
     background(0);
+    mouvementOfStars();
     fill(255);
     textFont(myFont);
     textSize(12 / scaleFactor);
@@ -374,6 +406,14 @@ function draw() {
     text(spaceShip.score, 30, 30 / scaleFactor);
     textSize(32 / scaleFactor);
     textAlign(CENTER);
+    // GAME OVER with shadow
+    fill(0, 0, 0, 100);
+    text(
+      "GAME OVER",
+      BASE_WIDTH / 2 + 2 / scaleFactor,
+      120 / scaleFactor + 2 / scaleFactor
+    );
+    fill(255);
     text("GAME OVER", BASE_WIDTH / 2, 120 / scaleFactor);
     // Buttons with glow
     if (playAgainButton.isHovered) {
@@ -428,9 +468,9 @@ function draw() {
     rect(
       exitButton.x,
       exitButton.y,
-      exitButton.width,
-      exitButton.height,
-      exitButton.cornerRadius
+      playAgainButton.width,
+      playAgainButton.height,
+      playAgainButton.cornerRadius
     );
     noStroke();
     fill(exitButton.textColor);
@@ -444,11 +484,10 @@ function draw() {
     );
     drawLeaderboard(
       BASE_WIDTH / 2 - 100,
-      (playAgainButton.y - 150) / scaleFactor, // move it 150px *above* the button
+      (playAgainButton.y - 120) / scaleFactor,
       200,
       120 / scaleFactor
     );
-
     playAgainButton.isHovered =
       mouseX / scaleFactor >= playAgainButton.x &&
       mouseX / scaleFactor <= playAgainButton.x + playAgainButton.width &&
@@ -461,12 +500,28 @@ function draw() {
       mouseY / scaleFactor <= exitButton.y + exitButton.height;
   } else if (state == 100) {
     background(0);
+    mouvementOfStars();
     fill(255);
     textFont(myFont);
     textSize(24 / scaleFactor);
     textAlign(CENTER);
+    // High score text with shadow
+    fill(0, 0, 0, 100);
+    text(
+      "New High Score!",
+      BASE_WIDTH / 2 + 2 / scaleFactor,
+      150 / scaleFactor + 2 / scaleFactor
+    );
+    fill(255);
     text("New High Score!", BASE_WIDTH / 2, 150 / scaleFactor);
     textSize(16 / scaleFactor);
+    fill(0, 0, 0, 100);
+    text(
+      "Enter your name:",
+      BASE_WIDTH / 2 + 2 / scaleFactor,
+      200 / scaleFactor + 2 / scaleFactor
+    );
+    fill(255);
     text("Enter your name:", BASE_WIDTH / 2, 200 / scaleFactor);
     fill(0, 0, 100, 128);
     stroke(255);
@@ -488,6 +543,13 @@ function draw() {
     );
     textAlign(CENTER);
     textSize(12 / scaleFactor);
+    fill(0, 0, 0, 100);
+    text(
+      "Press Enter to submit",
+      BASE_WIDTH / 2 + 1 / scaleFactor,
+      300 / scaleFactor + 1 / scaleFactor
+    );
+    fill(255);
     text("Press Enter to submit", BASE_WIDTH / 2, 300 / scaleFactor);
   }
   // Fade effect
@@ -510,6 +572,14 @@ function drawLeaderboard(x, y, width, height) {
   textSize(16 / scaleFactor);
   textStyle(BOLD);
   textAlign(CENTER);
+  // Leaderboard title with shadow
+  fill(0, 0, 0, 100);
+  text(
+    "High Scores",
+    x + width / 2 + 1 / scaleFactor,
+    y + 20 / scaleFactor + 1 / scaleFactor
+  );
+  fill(255);
   text("High Scores", x + width / 2, y + 20 / scaleFactor);
   textSize(12 / scaleFactor);
   textStyle(NORMAL);
@@ -533,7 +603,15 @@ function mousePressed() {
   if (clickCooldown > millis() || stateLock) return;
   clickCooldown = millis() + 500;
   if (bonusSound.isLoaded()) bonusSound.play();
-  if (state == 0 && startButton.isHovered) {
+  if (
+    state == -2 &&
+    mouseX / scaleFactor > 300 &&
+    mouseX / scaleFactor < 380 &&
+    mouseY / scaleFactor > 550 &&
+    mouseY / scaleFactor < 580
+  ) {
+    changeState(-1);
+  } else if (state == 0 && startButton.isHovered) {
     changeState(1);
   } else if (state == 99) {
     if (playAgainButton.isHovered) {
@@ -587,10 +665,8 @@ function keyPressed() {
         });
         highScores.sort((a, b) => b.score - a.score);
         highScores = highScores.slice(0, 5);
-        console.log(
-          "Update assets/highscores.json with:",
-          JSON.stringify(highScores, null, 2)
-        );
+        localStorage.setItem("highScores", JSON.stringify(highScores));
+        console.log("Saved high scores:", highScores);
         resetGame();
         changeState(1);
       }
