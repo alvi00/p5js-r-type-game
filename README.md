@@ -1,81 +1,132 @@
-##SpaceShooter
-Overview
-SpaceShooter is a retro-style space shooter game. Built with p5.js, the game features a player-controlled spaceship battling waves of enemies, collecting bonuses, and earning high scores saved in localStorage. The game is designed to run locally via a Python HTTP server and is optimized for Chrome.
 
-Requirements
 
-Browser: Google Chrome
-Python: Python 3.x (for running a local HTTP server).
-Dependencies:
-p5.js library (added)
-Assets (images, sounds, font) in the assets/ folder.
+# SpaceShooter
 
-Setup Instructions
+##  Overview  
+**SpaceShooter** is a retro-style arcade space shooter built using **p5.js**. The player controls a spaceship, battles waves of enemies, collects bonuses, and earns high scores that persist using `localStorage`. The game runs locally via a Python HTTP server and is optimized for Google Chrome.
 
-Navigate to Project Directory
+---
 
-Start Local Server:
-Run a Python HTTP server in cmd :python -m http.server 8000
+##  Requirements
 
-Open Game:
-Open Chrome and navigate to http://localhost:8000.
-The game starts with an intro video (state -2), followed by the main menu (state 0).
+- **Browser:** Google Chrome  
+- **Python:** Python 3.x (used to run local HTTP server)  
+- **Dependencies:**  
+  - `p5.js` library (included in project)  
+  - Game assets (images, sounds, font) in the `assets/` folder
 
-Optional: Clear Leaderboard:
-To reset high scores, open Chrome DevTools (Ctrl + Shift + I), go to Application > Local Storage > http://localhost:8000, and delete the highScores key.
+---
 
-Gameplay and Controls
+##  Setup Instructions
 
-Objective: Control a spaceship to destroy enemies, collect bonuses, and achieve a high score.
-Controls:
-Arrow Keys: Move the spaceship (left, right, up, down).
-Spacebar: Fire bullets.
-Enter: Start game from main menu (state 0) or submit high score (state 100).
-Mouse: Click buttons (Start Game, Play Again, Exit).
+1. **Navigate to Project Directory**  
+   Open your terminal or command prompt in the project folder.
 
-Game States:
-State -2: Intro video (click "Skip" to proceed).
-State -1: Loading screen.
-State 0: Main menu with leaderboard.
-State 1: Gameplay (shoot enemies, collect bonuses).
-State 99: Game over with leaderboard and buttons.
-State 100: High score input for new top scores.
+2. **Start Local Server**  
+   Run the following command:
+```
 
-Features:
-Enemies: Three types (type 1: 2 health, type 2: fast, type 3: shoots and moves sinusoidally).
-Bonuses: Collect to gain extra lives.
-Scoring: Earn 1–3 points per enemy, +50 bonus every 10 kills with a milestone sound.
-Leaderboard: Displays top 5 scores with dynamic positions (1, 2, 3, etc.).
-Background: Starfield (state 1) and background.png (state 99).
-Sounds: Shooting, explosions, bonuses, and milestone sound (milestone.wav).
+python -m http.server 8000
 
-File Structure
+```
+
+3. **Open the Game in Browser**  
+Launch Google Chrome and visit:  
+```
+
+[http://localhost:8000](http://localhost:8000)
+
+```
+
+The game starts with an **intro video** (`state -2`), then transitions to the **main menu** (`state 0`).
+
+4. **Optional: Reset Leaderboard**  
+- Open **Chrome DevTools** (`Ctrl + Shift + I`)
+- Go to **Application > Local Storage > http://localhost:8000**
+- Delete the `highScores` key to clear scores
+
+---
+
+## 🎮 Gameplay and Controls
+
+- **Objective:** Destroy enemies, collect bonuses, and rack up high scores.
+
+- **Controls:**
+- `Arrow Keys:` Move spaceship (left, right, up, down)  
+- `Spacebar:` Shoot bullets  
+- `Enter:` Start game or submit score  
+- `Mouse:` Click buttons like Start Game, Play Again, Exit
+
+---
+
+##  Game States
+
+| State   | Description |
+|---------|-------------|
+| -2      | Intro video (click **Skip** to proceed) |
+| -1      | Loading screen |
+| 0       | Main menu with leaderboard |
+| 1       | Gameplay |
+| 99      | Game over screen with buttons + leaderboard |
+| 100     | High score name input |
+
+---
+
+##  Features
+
+- **Enemies:**  
+- Type 1: 2 health  
+- Type 2: Fast  
+- Type 3: Shoots and moves in a sinusoidal pattern
+
+- **Bonuses:**  
+- Collect to gain extra lives
+
+- **Scoring:**  
+- +1 to +3 per enemy  
+- +50 bonus every 10 kills (with `milestone.wav`)
+
+- **Leaderboard:**  
+- Top 5 scores  
+- Dynamically displays ranks (1st, 2nd, 3rd...)
+
+- **Backgrounds:**  
+- `state 1`: Animated starfield  
+- `state 99`: Static background from `background.png`
+
+- **Sound Effects:**  
+- Shooting (`shoot.wav`)  
+- Explosions (`explosion.wav`)  
+- Bonuses (`bonus.wav`)  
+- Milestone kill bonus (`milestone.wav`)
+
+---
+
+##  File Structure
+
+```
+
 SpaceShooter/
 ├── assets/
-│ ├── 8-bit-pusab.ttf
-│ ├── background.png
-│ ├── bonus.wav
-│ ├── bonus0.png
-│ ├── boss0.png
-│ ├── bullet.png
-│ ├── bullet2.png
-│ ├── enemy1.png
-│ ├── enemy1b.png
-│ ├── enemy2.png
-│ ├── enemy3.png
-│ ├── expl1.png
-│ ├── expl2.png
-│ ├── expl3.png
-│ ├── expl4.png
-│ ├── expl5.png
-│ ├── expl6.png
-│ ├── explosion.wav
-│ ├── highscores.json
-│ ├── intro.mp4
-│ ├── milestone.wav
-│ ├── scores.json
-│ ├── shoot.wav
-│ └── spaceShip.png
+│   ├── 8-bit-pusab.ttf
+│   ├── background.png
+│   ├── bonus.wav
+│   ├── bonus0.png
+│   ├── boss0.png
+│   ├── bullet.png
+│   ├── bullet2.png
+│   ├── enemy1.png
+│   ├── enemy1b.png
+│   ├── enemy2.png
+│   ├── enemy3.png
+│   ├── expl1.png - expl6.png
+│   ├── explosion.wav
+│   ├── highscores.json
+│   ├── intro.mp4
+│   ├── milestone.wav
+│   ├── scores.json
+│   ├── shoot.wav
+│   └── spaceShip.png
 ├── index.html
 ├── p5.min.js
 ├── p5.play.js
@@ -83,9 +134,8 @@ SpaceShooter/
 ├── README.md
 └── q1.js
 
-Showcase Features:
-Main Menu (state 0): Highlight leaderboard with dynamic position (req #8).
-Gameplay (state 1): Kill 10 enemies to trigger milestone.wav and +50 points (req #10).
-Game Over (state 99): Show background.png (req #4) and leaderboard.
-High Score (state 100): Enter a name to save a new score.
-Stability (req #9): Resize window to show scaleFactor and navigate states without crashes.
+```
+
+---
+
+Built with p5.js
