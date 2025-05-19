@@ -1,4 +1,4 @@
-SpaceShooter - 1701ICT Creative Coding Assignment 3
+##SpaceShooter
 Overview
 SpaceShooter is a retro-style space shooter game. Built with p5.js, the game features a player-controlled spaceship battling waves of enemies, collecting bonuses, and earning high scores saved in localStorage. The game is designed to run locally via a Python HTTP server and is optimized for Chrome.
 
