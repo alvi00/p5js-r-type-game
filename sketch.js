@@ -35,6 +35,7 @@ let transitionAlpha = 0; // For fade effects
 let clickCooldown = 0; // Prevent rapid clicks (ms)
 let playerName = ""; // For high score input
 let stateLock = false; // Prevent rapid state changes
+let gameOverBackground; // Background for game over scene
 
 // Start screen button
 let startButton = {
@@ -80,6 +81,9 @@ let exitButton = {
 };
 
 function preload() {
+  gameOverBackground = loadImage("assets/background.png", null, () =>
+    console.error("Failed to load game over background")
+  );
   spaceShipImg = loadImage("assets/spaceShip.png");
   bulletImg = loadImage("assets/bullet.png");
   bulletEnemyImg = loadImage("assets/bullet2.png");
@@ -359,7 +363,7 @@ function draw() {
     }
     for (let i = 0; i < bonus.length; i++) {
       bonus[i].move();
-      bonus[i].show();
+      bulletImg, bonus[i].show();
       if (intersectWith(bonus[i], spaceShip)) {
         bonus[i].effect(spaceShip);
         bonus[i].y = -10;
@@ -396,7 +400,7 @@ function draw() {
     bulletMove();
     bulletEnemyMove();
   } else if (state == 99) {
-    background(0);
+    image(gameOverBackground, 0, 0, BASE_WIDTH, BASE_HEIGHT); // Draw background
     mouvementOfStars();
     fill(255);
     textFont(myFont);
@@ -884,7 +888,7 @@ class Enemy {
   }
 
   show() {
-    image(this.image, this.x - 15, this.y - 15);
+    image(this.image, this.x - 15, this.y - 15); // Fixed: Use this.x, this.y
   }
 }
 
