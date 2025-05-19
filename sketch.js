@@ -39,7 +39,7 @@ let stateLock = false; // Prevent rapid state changes
 // Start screen button
 let startButton = {
   x: 125,
-  y: 280,
+  y: 350,
   width: 150,
   height: 50,
   cornerRadius: 10,
@@ -54,7 +54,7 @@ let startButton = {
 // Game over buttons
 let playAgainButton = {
   x: 75,
-  y: 280,
+  y: 420,
   width: 120,
   height: 50,
   cornerRadius: 10,
@@ -67,7 +67,7 @@ let playAgainButton = {
 };
 let exitButton = {
   x: 205,
-  y: 280,
+  y: 420,
   width: 120,
   height: 50,
   cornerRadius: 10,
@@ -246,21 +246,24 @@ function draw() {
     textStyle(BOLD);
     textAlign(CENTER);
     text("SpaceShooter", BASE_WIDTH / 2, 100 / scaleFactor);
-    textSize(12 / scaleFactor);
-    textStyle(NORMAL);
-    text("Arrows to move", BASE_WIDTH / 2, 350 / scaleFactor);
-    text("Space bar to fire", BASE_WIDTH / 2, 400 / scaleFactor);
     drawLeaderboard(
       BASE_WIDTH / 2 - 100,
       150 / scaleFactor,
       200,
       120 / scaleFactor
     );
-    startButton.isHovered =
-      mouseX / scaleFactor >= startButton.x &&
-      mouseX / scaleFactor <= startButton.x + startButton.width &&
-      mouseY / scaleFactor >= startButton.y &&
-      mouseY / scaleFactor <= startButton.y + startButton.height;
+    // Start button with glow
+    if (startButton.isHovered) {
+      fill(255, 255, 255, 50);
+      noStroke();
+      rect(
+        startButton.x - 5,
+        startButton.y - 5,
+        startButton.width + 10,
+        startButton.height + 10,
+        startButton.cornerRadius + 5
+      );
+    }
     fill(
       startButton.isHovered ? startButton.hoverFill : startButton.normalFill
     );
@@ -283,6 +286,28 @@ function draw() {
       startButton.x + startButton.width / 2,
       startButton.y + startButton.height / 2
     );
+    // Instructions below button
+    textSize(12 / scaleFactor);
+    text(
+      "Arrows to move",
+      BASE_WIDTH / 2,
+      (startButton.y + startButton.height + 10) / scaleFactor
+    );
+    text(
+      "Space bar to fire",
+      BASE_WIDTH / 2,
+      (startButton.y + startButton.height + 30) / scaleFactor
+    );
+    text(
+      "Play . Shoot . Enjoy",
+      BASE_WIDTH / 2,
+      (BASE_HEIGHT - 20) / scaleFactor
+    );
+    startButton.isHovered =
+      mouseX / scaleFactor >= startButton.x &&
+      mouseX / scaleFactor <= startButton.x + startButton.width &&
+      mouseY / scaleFactor >= startButton.y &&
+      mouseY / scaleFactor <= startButton.y + startButton.height;
   } else if (state == 1) {
     background(5, 0, 12);
     mouvementOfStars();
@@ -349,12 +374,19 @@ function draw() {
     text(spaceShip.score, 30, 30 / scaleFactor);
     textSize(32 / scaleFactor);
     textAlign(CENTER);
-    text("GAME OVER", BASE_WIDTH / 2, 150 / scaleFactor);
-    playAgainButton.isHovered =
-      mouseX / scaleFactor >= playAgainButton.x &&
-      mouseX / scaleFactor <= playAgainButton.x + playAgainButton.width &&
-      mouseY / scaleFactor >= playAgainButton.y &&
-      mouseY / scaleFactor <= playAgainButton.y + playAgainButton.height;
+    text("GAME OVER", BASE_WIDTH / 2, 120 / scaleFactor);
+    // Buttons with glow
+    if (playAgainButton.isHovered) {
+      fill(255, 255, 255, 50);
+      noStroke();
+      rect(
+        playAgainButton.x - 5,
+        playAgainButton.y - 5,
+        playAgainButton.width + 10,
+        playAgainButton.height + 10,
+        playAgainButton.cornerRadius + 5
+      );
+    }
     fill(
       playAgainButton.isHovered
         ? playAgainButton.hoverFill
@@ -379,11 +411,17 @@ function draw() {
       playAgainButton.x + playAgainButton.width / 2,
       playAgainButton.y + playAgainButton.height / 2
     );
-    exitButton.isHovered =
-      mouseX / scaleFactor >= exitButton.x &&
-      mouseX / scaleFactor <= exitButton.x + exitButton.width &&
-      mouseY / scaleFactor >= exitButton.y &&
-      mouseY / scaleFactor <= exitButton.y + exitButton.height;
+    if (exitButton.isHovered) {
+      fill(255, 255, 255, 50);
+      noStroke();
+      rect(
+        exitButton.x - 5,
+        exitButton.y - 5,
+        exitButton.width + 10,
+        exitButton.height + 10,
+        exitButton.cornerRadius + 5
+      );
+    }
     fill(exitButton.isHovered ? exitButton.hoverFill : exitButton.normalFill);
     stroke(exitButton.borderColor);
     strokeWeight(2 / scaleFactor);
@@ -406,12 +444,22 @@ function draw() {
     );
     drawLeaderboard(
       BASE_WIDTH / 2 - 100,
-      350 / scaleFactor,
+      (playAgainButton.y - 150) / scaleFactor, // move it 150px *above* the button
       200,
       120 / scaleFactor
     );
+
+    playAgainButton.isHovered =
+      mouseX / scaleFactor >= playAgainButton.x &&
+      mouseX / scaleFactor <= playAgainButton.x + playAgainButton.width &&
+      mouseY / scaleFactor >= playAgainButton.y &&
+      mouseY / scaleFactor <= playAgainButton.y + playAgainButton.height;
+    exitButton.isHovered =
+      mouseX / scaleFactor >= exitButton.x &&
+      mouseX / scaleFactor <= exitButton.x + exitButton.width &&
+      mouseY / scaleFactor >= exitButton.y &&
+      mouseY / scaleFactor <= exitButton.y + exitButton.height;
   } else if (state == 100) {
-    // High score input screen
     background(0);
     fill(255);
     textFont(myFont);
@@ -420,7 +468,6 @@ function draw() {
     text("New High Score!", BASE_WIDTH / 2, 150 / scaleFactor);
     textSize(16 / scaleFactor);
     text("Enter your name:", BASE_WIDTH / 2, 200 / scaleFactor);
-    // Draw input box
     fill(0, 0, 100, 128);
     stroke(255);
     strokeWeight(2 / scaleFactor);
@@ -495,7 +542,7 @@ function mousePressed() {
         (highScores.length < 5 ||
           spaceShip.score > highScores[highScores.length - 1].score)
       ) {
-        changeState(100); // Go to high score input
+        changeState(100);
       } else {
         resetGame();
         changeState(1);
