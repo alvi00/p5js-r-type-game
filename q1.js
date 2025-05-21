@@ -1,8 +1,7 @@
 const MAX_ENEMY = 8;
 const MAX_LIFE = 3;
 
-// Base dimensions (original canvas size)
-const BASE_WIDTH = 400;
+const BASE_WIDTH = 800;
 const BASE_HEIGHT = 600;
 
 let spaceShip;
@@ -39,7 +38,7 @@ let gameOverBackground; // Background for game over scene
 
 // Start screen button
 let startButton = {
-  x: 125,
+  x: 327,
   y: 350,
   width: 150,
   height: 50,
@@ -54,7 +53,7 @@ let startButton = {
 
 // Game over buttons
 let playAgainButton = {
-  x: 75,
+  x: 270,
   y: 420,
   width: 120,
   height: 50,
@@ -67,7 +66,7 @@ let playAgainButton = {
   textColor: [255, 255, 255],
 };
 let exitButton = {
-  x: 205,
+  x: 405,
   y: 420,
   width: 120,
   height: 50,
@@ -387,7 +386,7 @@ function draw() {
     textSize(16 / scaleFactor);
     textStyle(BOLD);
     text(spaceShip.score, 30, 30 / scaleFactor);
-    text("Life : " + spaceShip.life, 300, 30 / scaleFactor);
+    text("Life : " + spaceShip.life, 700, 30 / scaleFactor);
     textStyle(NORMAL);
     for (let i = 0; i < enemies.length; i++) {
       if (intersectWith(spaceShip, enemies[i])) {
